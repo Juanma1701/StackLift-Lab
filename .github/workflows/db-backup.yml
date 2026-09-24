@@ -24,8 +24,7 @@ jobs:
       - name: Dump de la base de datos
         run: |
           mkdir -p backups
-          # Forzamos a usar el pg_dump de la versión 18 y evitamos el error de versión con una variable
-          PGOPTIONS="--client-min-messages=warning" /usr/lib/postgresql/18/bin/pg_dump "${{ secrets.DATABASE_UNPOOLED_URL }}" > backups/backup-$(date +%Y-%m-%d).sql
+          /usr/lib/postgresql/18/bin/pg_dump "${{ secrets.DATABASE_UNPOOLED_URL }}" > backups/backup-$(date +%Y-%m-%d).sql
 
       - name: Commitear el backup al repo
         run: |
