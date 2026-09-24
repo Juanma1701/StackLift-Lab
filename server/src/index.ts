@@ -12,7 +12,7 @@ import checkinRoutes from "./routes/checkin.routes";
 
 const app = express();
 
-const allowedOrigins = [process.env.CLIENT_URL, "http://localhost:4173"].filter(Boolean);
+const allowedOrigins = [process.env.CLIENT_URL, "https://gym-tracker-innovacode1.vercel.app"].filter(Boolean);
 
 app.use(helmet({ crossOriginResourcePolicy: false })); // false para que las imágenes de /uploads carguen bien desde el cliente
 app.use(
