@@ -3,17 +3,33 @@ import { prisma } from "../config/prisma";
 import { AuthRequest } from "../middleware/auth";
 import { toLocalDateKey } from "../utils/dateKey";
 
-function isWeekend(date: Date): boolean {
-  const day = date.getDay();
-  return day === 0 || day === 6;
-}
-
 interface GoalEntry {
   exerciseName: string;
   percent: number;
   currentWeight: number;
   targetWeight: number;
   mostRecent: Date;
+}
+
+// Día de la semana (0=domingo, 6=sábado) a partir de una clave "YYYY-MM-DD".
+// Usamos Date.UTC porque el día calendario ya está fijo en la clave;
+// no hay ambigüedad de zona horaria en este cálculo.
+function keyToWeekday(key: string): number {
+  const [y, m, d] = key.split("-").map(Number);
+  return new Date(Date.UTC(y, m - 1, d)).getUTCDay();
+}
+
+function isWeekendKey(key: string): boolean {
+  const day = keyToWeekday(key);
+  return day === 0 || day === 6;
+}
+
+// Suma (o resta, con delta negativo) días a una clave "YYYY-MM-DD".
+function shiftKeyByDays(key: string, delta: number): string {
+  const [y, m, d] = key.split("-").map(Number);
+  const dt = new Date(Date.UTC(y, m - 1, d));
+  dt.setUTCDate(dt.getUTCDate() + delta);
+  return dt.toISOString().split("T")[0];
 }
 
 // Días con al menos un registro en un mes dado, para pintar el calendario
@@ -58,14 +74,13 @@ export async function getDashboardStats(req: AuthRequest, res: Response) {
   const monthlyWorkouts = Array.from(trainedDays).filter((d) => d.startsWith(currentYearMonth)).length;
 
   let streak = 0;
-  const cursor = new Date();
-  cursor.setHours(0, 0, 0, 0);
-  while (isWeekend(cursor)) cursor.setDate(cursor.getDate() - 1);
+  let cursorKey = toLocalDateKey(now); // clave de "hoy" en Colombia, calculada una sola vez y de forma consistente
+  while (isWeekendKey(cursorKey)) cursorKey = shiftKeyByDays(cursorKey, -1);
 
-  while (trainedDays.has(toLocalDateKey(cursor))) {
+  while (trainedDays.has(cursorKey)) {
     streak++;
-    cursor.setDate(cursor.getDate() - 1);
-    while (isWeekend(cursor)) cursor.setDate(cursor.getDate() - 1);
+    cursorKey = shiftKeyByDays(cursorKey, -1);
+    while (isWeekendKey(cursorKey)) cursorKey = shiftKeyByDays(cursorKey, -1);
   }
 
   const exercises = await prisma.exercise.findMany({

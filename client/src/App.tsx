@@ -1,10 +1,9 @@
 import { Suspense, lazy } from "react";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { AuthProvider } from "@/context/AuthContext";
 import { RestTimerProvider } from "@/context/RestTimerContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { ToastContainer } from "@/components/ToastContainer";
-import { RestTimerWidget } from "@/components/RestTimerWidget";
 import { RestTimerButton } from "@/components/RestTimerButton";
 
 const Login = lazy(() => import("@/pages/Login").then((m) => ({ default: m.Login })));
@@ -23,6 +22,16 @@ function PageFallback() {
       <p className="text-muted-foreground text-sm">Cargando...</p>
     </div>
   );
+}
+
+// Rutas donde no tiene sentido mostrar el botón del cronómetro (no hay sesión activa todavía)
+const PUBLIC_PATHS = ["/login", "/register", "/forgot-password", "/reset-password"];
+
+function GlobalRestTimerButton() {
+  const location = useLocation();
+  const isPublic = PUBLIC_PATHS.includes(location.pathname) || location.pathname.startsWith("/compartido/");
+  if (isPublic) return null;
+  return <RestTimerButton />;
 }
 
 export default function App() {
@@ -44,8 +53,7 @@ export default function App() {
             </Routes>
           </Suspense>
           <ToastContainer />
-          <RestTimerWidget />
-          <RestTimerButton />
+          <GlobalRestTimerButton />
         </RestTimerProvider>
       </AuthProvider>
     </BrowserRouter>
