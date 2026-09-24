@@ -1,7 +1,12 @@
 import { showToast } from "./toast";
 
 const API_URL = import.meta.env.VITE_API_URL;
-export const SERVER_URL = API_URL.replace(/\/api$/, "");
+
+if (!API_URL) {
+  throw new Error("VITE_API_URL no está definida. Revisa las variables de entorno en Vercel.");
+}
+
+export const SERVER_URL = API_URL.replace(/\/api$/, "");;
 
 export function getFullImageUrl(path: string | null): string | null {
   return path ? `${SERVER_URL}${path}` : null;
