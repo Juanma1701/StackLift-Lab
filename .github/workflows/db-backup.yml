@@ -1,0 +1,36 @@
+name: Backup Postgres
+
+on:
+  schedule:
+    - cron: "0 7 * * *"
+  workflow_dispatch:
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Instalar cliente de Postgres
+        run: sudo apt-get update && sudo apt-get install -y postgresql-client
+
+      - name: Dump de la base de datos
+        run: |
+          mkdir -p backups
+          pg_dump "${{ secrets.DATABASE_UNPOOLED_URL }}" > backups/backup-$(date +%Y-%m-%d).sql
+
+      - name: Commitear el backup al repo
+        run: |
+          git config user.name "backup-bot"
+          git config user.email "backup-bot@users.noreply.github.com"
+          git add backups/
+          git commit -m "Backup automático $(date +%Y-%m-%d)" || echo "Sin cambios para commitear"
+          git push
+
+      - name: Borrar backups de más de 14 días
+        run: |
+          find backups/ -name "*.sql" -mtime +14 -delete
+          git add backups/
+          git commit -m "Limpieza de backups viejos" || echo "Nada para limpiar"
+          git push
