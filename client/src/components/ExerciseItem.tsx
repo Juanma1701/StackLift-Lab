@@ -81,7 +81,7 @@ export function ExerciseItem({ exercise, onDelete, onChange, isFirst, isLast }: 
           onChange={onChange}
         />
 
-        <div className="flex items-center gap-2 mt-3">
+        <div className="flex items-center gap-2 mt-3 flex-wrap">
           <button
             onClick={() => handleMove("up")}
             disabled={isFirst}

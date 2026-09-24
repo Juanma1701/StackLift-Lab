@@ -3,9 +3,9 @@ import jwt from "jsonwebtoken";
 const JWT_SECRET = process.env.JWT_SECRET as string;
 
 export function signToken(userId: string): string {
-  return jwt.sign({ userId }, JWT_SECRET, { expiresIn: "7d" });
+  return jwt.sign({ userId }, JWT_SECRET, { expiresIn: "7d", algorithm: "HS256" });
 }
 
 export function verifyToken(token: string): { userId: string } {
-  return jwt.verify(token, JWT_SECRET) as { userId: string };
+  return jwt.verify(token, JWT_SECRET, { algorithms: ["HS256"] }) as { userId: string };
 }
