@@ -1,0 +1,107 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id          String               @id @default(cuid())
+  name        String
+  email       String               @unique
+  password    String
+  avatarUrl   String?
+  shareToken  String?              @unique
+  createdAt   DateTime             @default(now())
+  checkIns    DailyCheckIn[]
+  routines    Routine[]
+  resetTokens PasswordResetToken[]
+}
+
+model PasswordResetToken {
+  id        String    @id @default(cuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash String
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([userId])
+}
+
+model Routine {
+  id        String       @id @default(cuid())
+  userId    String
+  user      User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name      String
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+  days      RoutineDay[]
+}
+
+model RoutineDay {
+  id           String        @id @default(cuid())
+  routineId    String
+  routine      Routine       @relation(fields: [routineId], references: [id], onDelete: Cascade)
+  dayOfWeek    Int           // 1=Lunes, 2=Martes, 3=Miércoles, 4=Jueves, 5=Viernes
+  muscleGroups MuscleGroup[]
+
+  @@unique([routineId, dayOfWeek])
+}
+
+model MuscleGroup {
+  id           String     @id @default(cuid())
+  routineDayId String
+  routineDay   RoutineDay @relation(fields: [routineDayId], references: [id], onDelete: Cascade)
+  name         String
+  order        Int        @default(0)
+  exercises    Exercise[]
+}
+
+model Exercise {
+  id            String       @id @default(cuid())
+  muscleGroupId String
+  muscleGroup   MuscleGroup  @relation(fields: [muscleGroupId], references: [id], onDelete: Cascade)
+  name          String
+  imageUrl      String?
+  targetSets    Int          @default(3)
+  targetReps    Int          @default(10)
+  targetWeight  Float?
+  order         Int          @default(0)
+  createdAt     DateTime     @default(now())
+  logs          WorkoutLog[]
+}
+
+model WorkoutLog {
+  id          String   @id @default(cuid())
+  exerciseId  String
+  exercise    Exercise @relation(fields: [exerciseId], references: [id], onDelete: Cascade)
+  notes       String?
+  performedAt DateTime @default(now())
+  sets        SetLog[]
+}
+
+model SetLog {
+  id           String     @id @default(cuid())
+  workoutLogId String
+  workoutLog   WorkoutLog @relation(fields: [workoutLogId], references: [id], onDelete: Cascade)
+  setNumber    Int
+  weight       Float
+  reps         Int
+}
+
+model DailyCheckIn {
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  date       String   // YYYY-MM-DD, misma convención que toLocalDateKey
+  difficulty Int
+  notes      String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@unique([userId, date])
+}
