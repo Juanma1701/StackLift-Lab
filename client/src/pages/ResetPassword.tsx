@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate, useSearchParams, Link } from "react-router-dom";
 import { api } from "@/lib/api";
+import { PasswordInput } from "@/components/PasswordInput";
 
 export function ResetPassword() {
   const [searchParams] = useSearchParams();
@@ -51,19 +52,17 @@ export function ResetPassword() {
         <h1 className="text-2xl font-condensed font-bold text-foreground">Nueva contraseña</h1>
 
         <form onSubmit={handleSubmit} className="space-y-3">
-          <input
-            type="password"
+          <PasswordInput
             required
             placeholder="Nueva contraseña"
-            className="w-full bg-background border border-border rounded-md px-3 py-2 text-sm text-foreground focus:outline-none focus:border-primary"
+            className="text-sm"
             value={newPassword}
             onChange={(e) => setNewPassword(e.target.value)}
           />
-          <input
-            type="password"
+          <PasswordInput
             required
             placeholder="Confirmar contraseña"
-            className="w-full bg-background border border-border rounded-md px-3 py-2 text-sm text-foreground focus:outline-none focus:border-primary"
+            className="text-sm"
             value={confirm}
             onChange={(e) => setConfirm(e.target.value)}
           />
