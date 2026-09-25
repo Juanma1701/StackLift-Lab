@@ -2,6 +2,7 @@ import { Response } from "express";
 import { prisma } from "../config/prisma";
 import { AuthRequest } from "../middleware/auth";
 import { assertRoutineOwner } from "../middleware/ownership";
+import { COMMON_EXERCISES_BY_MUSCLE_GROUP } from "../data/commonExercises";
 
 export async function listRoutines(req: AuthRequest, res: Response) {
   const routines = await prisma.routine.findMany({
@@ -30,6 +31,12 @@ export async function createRoutine(req: AuthRequest, res: Response) {
             create: (template?.[dayOfWeek] ?? []).map((groupName, order) => ({
               name: groupName,
               order,
+              exercises: {
+                create: (COMMON_EXERCISES_BY_MUSCLE_GROUP[groupName] ?? []).map((ex, exOrder) => ({
+                  name: ex.name,
+                  order: exOrder,
+                })),
+              },
             })),
           },
         })),
