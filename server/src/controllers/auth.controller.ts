@@ -8,8 +8,8 @@ import path from "path";
 
 const COOKIE_OPTIONS = {
   httpOnly: true,
-  sameSite: "lax" as const,
-  secure: process.env.NODE_ENV === "production",
+  sameSite: "none" as const,
+  secure: true,
   maxAge: 7 * 24 * 60 * 60 * 1000,
 };
 
@@ -58,7 +58,7 @@ export async function login(req: Request, res: Response) {
 }
 
 export async function logout(_req: Request, res: Response) {
-  res.clearCookie("token");
+  res.clearCookie("token", COOKIE_OPTIONS);
   res.json({ message: "Sesión cerrada" });
 }
 
