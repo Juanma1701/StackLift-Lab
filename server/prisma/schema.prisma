@@ -62,17 +62,35 @@ model MuscleGroup {
 }
 
 model Exercise {
-  id            String       @id @default(cuid())
-  muscleGroupId String
-  muscleGroup   MuscleGroup  @relation(fields: [muscleGroupId], references: [id], onDelete: Cascade)
-  name          String
-  imageUrl      String?
-  targetSets    Int          @default(3)
-  targetReps    Int          @default(10)
-  targetWeight  Float?
-  order         Int          @default(0)
-  createdAt     DateTime     @default(now())
-  logs          WorkoutLog[]
+  id                 String       @id @default(cuid())
+  muscleGroupId      String
+  muscleGroup        MuscleGroup  @relation(fields: [muscleGroupId], references: [id], onDelete: Cascade)
+  name               String
+  imageUrl           String?
+  imageSource        String?      // "template" (viene de wger) | "user" (subida por el usuario)
+  imageLicenseAuthor String?      // solo si imageSource = "template"
+  imageLicenseUrl    String?      // solo si imageSource = "template"
+  imageSourceUrl     String?      // solo si imageSource = "template", link a wger.de
+  targetSets         Int          @default(3)
+  targetReps         Int          @default(10)
+  targetWeight       Float?
+  order              Int          @default(0)
+  createdAt          DateTime     @default(now())
+  logs               WorkoutLog[]
+}
+
+model ExerciseImageTemplate {
+  id               String   @id @default(cuid())
+  exerciseName     String   // normalizado: lowercase + trim, igual que ya haces para agrupar ejercicios
+  imageUrl         String   // ruta en TU storage, ej: /uploads/exercise-templates/press-banca.png
+  license          String
+  licenseTitle     String?
+  licenseAuthor    String?
+  licenseAuthorUrl String?
+  sourceUrl        String   // URL del ejercicio en wger.de, para el crédito
+  createdAt        DateTime @default(now())
+
+  @@index([exerciseName])
 }
 
 model WorkoutLog {

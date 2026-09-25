@@ -17,6 +17,8 @@ import {
   deleteExercise,
   uploadExerciseImage,
   deleteExerciseImage,
+  getExerciseImageTemplates,
+  assignTemplateImage,
 } from "../controllers/exercise.controller";
 import { createWorkoutLog, getLatestLog, listLogs, deleteLog } from "../controllers/workoutLog.controller";
 import { getRoutineHistory } from "../controllers/history.controller";
@@ -42,6 +44,9 @@ router.patch("/exercises/:id", validate(exerciseSchema.partial()), updateExercis
 router.delete("/exercises/:id", deleteExercise);
 router.post("/exercises/:id/image", upload.single("image"), uploadExerciseImage);
 router.delete("/exercises/:id/image", deleteExerciseImage);
+
+router.get("/exercises/image-templates", getExerciseImageTemplates);
+router.post("/exercises/:id/image-template", assignTemplateImage);
 
 router.post("/exercises/:exerciseId/logs", validate(workoutLogSchema), createWorkoutLog);
 router.get("/exercises/:exerciseId/logs/latest", getLatestLog);

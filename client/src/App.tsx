@@ -15,6 +15,7 @@ const History = lazy(() => import("@/pages/History").then((m) => ({ default: m.H
 const Progress = lazy(() => import("@/pages/Progress").then((m) => ({ default: m.Progress })));
 const Profile = lazy(() => import("@/pages/Profile").then((m) => ({ default: m.Profile })));
 const PublicProgress = lazy(() => import("@/pages/PublicProgress").then((m) => ({ default: m.PublicProgress })));
+const TerminosDeUso = lazy(() => import("@/pages/TerminosDeUso").then((m) => ({ default: m.TerminosDeUso })));
 
 function PageFallback() {
   return (
@@ -24,8 +25,7 @@ function PageFallback() {
   );
 }
 
-// Rutas donde no tiene sentido mostrar el botón del cronómetro (no hay sesión activa todavía)
-const PUBLIC_PATHS = ["/login", "/register", "/forgot-password", "/reset-password"];
+const PUBLIC_PATHS = ["/login", "/register", "/forgot-password", "/reset-password", "/terminos"];
 
 function GlobalRestTimerButton() {
   const location = useLocation();
@@ -46,6 +46,7 @@ export default function App() {
               <Route path="/forgot-password" element={<ForgotPassword />} />
               <Route path="/reset-password" element={<ResetPassword />} />
               <Route path="/compartido/:token" element={<PublicProgress />} />
+              <Route path="/terminos" element={<TerminosDeUso />} />
               <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
               <Route path="/historial" element={<ProtectedRoute><History /></ProtectedRoute>} />
               <Route path="/progreso" element={<ProtectedRoute><Progress /></ProtectedRoute>} />

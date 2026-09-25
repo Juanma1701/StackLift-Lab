@@ -35,8 +35,6 @@ export async function updateExercise(req: AuthRequest, res: Response) {
     data: { name, targetSets, targetReps, targetWeight },
   });
 
-  // Si se actualizó la meta de peso, la propagamos a otros ejercicios con el mismo nombre
-  // dentro de la misma rutina (mismo movimiento repetido en varios días), sin tocar sus registros.
   if (targetWeight !== undefined) {
     const muscleGroup = await prisma.muscleGroup.findUnique({
       where: { id: existing.muscleGroupId },
@@ -91,14 +89,20 @@ export async function uploadExerciseImage(req: AuthRequest, res: Response) {
   if (!req.file) return res.status(400).json({ message: "No se recibió ninguna imagen" });
 
   const existing = await prisma.exercise.findUnique({ where: { id: req.params.id } });
-  if (existing?.imageUrl) {
+  if (existing?.imageUrl && existing.imageSource === "user") {
     const oldPath = path.join(__dirname, "../../uploads", path.basename(existing.imageUrl));
     fs.unlink(oldPath, () => {});
   }
 
   const exercise = await prisma.exercise.update({
     where: { id: req.params.id },
-    data: { imageUrl: `/uploads/${req.file.filename}` },
+    data: {
+      imageUrl: `/uploads/${req.file.filename}`,
+      imageSource: "user",
+      imageLicenseAuthor: null,
+      imageLicenseUrl: null,
+      imageSourceUrl: null,
+    },
   });
 
   res.json(exercise);
@@ -107,14 +111,49 @@ export async function uploadExerciseImage(req: AuthRequest, res: Response) {
 export async function deleteExerciseImage(req: AuthRequest, res: Response) {
   const existing = await assertExerciseOwner(req.params.id, req.userId!);
 
-  if (existing.imageUrl) {
+  if (existing.imageUrl && existing.imageSource === "user") {
     const oldPath = path.join(__dirname, "../../uploads", path.basename(existing.imageUrl));
     fs.unlink(oldPath, () => {});
   }
 
   const exercise = await prisma.exercise.update({
     where: { id: req.params.id },
-    data: { imageUrl: null },
+    data: { imageUrl: null, imageSource: null, imageLicenseAuthor: null, imageLicenseUrl: null, imageSourceUrl: null },
+  });
+
+  res.json(exercise);
+}
+
+export async function getExerciseImageTemplates(req: AuthRequest, res: Response) {
+  const { q } = req.query;
+
+  const templates = await prisma.exerciseImageTemplate.findMany({
+    where: q
+      ? { exerciseName: { contains: String(q).toLowerCase().trim(), mode: "insensitive" } }
+      : undefined,
+    take: 12,
+    orderBy: { createdAt: "desc" },
+  });
+
+  res.json(templates);
+}
+
+export async function assignTemplateImage(req: AuthRequest, res: Response) {
+  await assertExerciseOwner(req.params.id, req.userId!);
+  const { templateId } = req.body;
+
+  const template = await prisma.exerciseImageTemplate.findUnique({ where: { id: templateId } });
+  if (!template) return res.status(404).json({ message: "Plantilla no encontrada" });
+
+  const exercise = await prisma.exercise.update({
+    where: { id: req.params.id },
+    data: {
+      imageUrl: template.imageUrl,
+      imageSource: "template",
+      imageLicenseAuthor: template.licenseAuthor,
+      imageLicenseUrl: template.licenseAuthorUrl,
+      imageSourceUrl: template.sourceUrl,
+    },
   });
 
   res.json(exercise);

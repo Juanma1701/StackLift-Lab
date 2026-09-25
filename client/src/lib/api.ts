@@ -163,6 +163,13 @@ export const api = {
     uploadRequest(`/exercises/${exerciseId}/image`, "POST", file),
   deleteExerciseImage: (exerciseId: string) =>
     request(`/exercises/${exerciseId}/image`, { method: "DELETE" }),
+  getExerciseImageTemplates: (exerciseName: string) =>
+    request(`/exercises/image-templates?q=${encodeURIComponent(exerciseName)}`),
+  assignExerciseTemplate: (exerciseId: string, templateId: string) =>
+    request(`/exercises/${exerciseId}/image-template`, {
+      method: "POST",
+      body: JSON.stringify({ templateId }),
+    }),
 
   getLatestLog: (exerciseId: string) => request(`/exercises/${exerciseId}/logs/latest`),
   listLogs: (exerciseId: string) => request(`/exercises/${exerciseId}/logs`),
