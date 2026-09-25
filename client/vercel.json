@@ -1,6 +1,7 @@
 {
   "rewrites": [
     { "source": "/api/:path*", "destination": "https://gym-tracker-production-d5a6.up.railway.app/api/:path*" },
+    { "source": "/uploads/:path*", "destination": "https://gym-tracker-production-d5a6.up.railway.app/uploads/:path*" },
     { "source": "/((?!assets/).*)", "destination": "/index.html" }
   ]
 }
