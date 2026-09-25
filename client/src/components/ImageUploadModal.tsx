@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Modal } from "./Modal";
-import { api } from "@/lib/api";
+import { api, getFullImageUrl } from "@/lib/api";
 
 interface Template {
   id: string;
@@ -132,7 +132,7 @@ export function ImageUploadModal({
                     disabled={saving}
                     className="group relative rounded-md overflow-hidden border border-border hover:border-primary disabled:opacity-50"
                   >
-                    <img src={t.imageUrl} alt="" className="w-full h-20 object-cover" />
+                    <img src={getFullImageUrl(t.imageUrl)!} alt="" className="w-full h-20 object-cover" />
                     <span className="absolute bottom-0 inset-x-0 bg-black/60 text-white text-[10px] px-1 py-0.5 truncate">
                       wger.de{t.licenseAuthor ? ` · ${t.licenseAuthor}` : ""}
                     </span>
