@@ -149,10 +149,15 @@ export function ExerciseItem({ exercise, onDelete, onChange, isFirst, isLast }: 
       {showImageModal && (
         <ImageUploadModal
           title={`Imagen de ${exercise.name}`}
+          exerciseName={exercise.name}
           currentUrl={getFullImageUrl(exercise.imageUrl)}
           onClose={() => setShowImageModal(false)}
           onUpload={async (file) => {
             await api.uploadExerciseImage(exercise.id, file);
+            onChange();
+          }}
+          onSelectTemplate={async (templateId) => {
+            await api.assignExerciseTemplate(exercise.id, templateId);
             onChange();
           }}
           onRemove={async () => {
