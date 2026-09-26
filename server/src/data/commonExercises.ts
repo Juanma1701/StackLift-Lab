@@ -26,18 +26,18 @@ export const COMMON_EXERCISES_BY_MUSCLE_GROUP: Record<string, CommonExercise[]> 
     { name: "peso muerto rumano con barra", searchTerm: "deadlift" },
   ],
   "Bíceps": [
-    { name: "curl en banco inclinado", searchTerm: "incline curl" }, // antes: "incline dumbbell curl"
-    { name: "curl martillo", searchTerm: "hammer curl" }, // antes: "curl militar"
+    { name: "curl en banco inclinado", searchTerm: "incline curl" },
+    { name: "curl martillo", searchTerm: "hammer curl" },
     { name: "curl en máquina", searchTerm: "cable curl" },
     { name: "polea con agarre prono de pie", searchTerm: "cable curl" },
   ],
   "Antebrazos": [
     { name: "curl de muñeca", searchTerm: "wrist curl" },
-    { name: "barra z con agarre prono de pie", searchTerm: "ez bar" }, // antes: "ez bar curl"
+    { name: "barra z con agarre prono de pie", searchTerm: "ez bar" },
   ],
   "Brazos": [
     { name: "curl con mancuernas", searchTerm: "dumbbell bicep curl" },
-    { name: "extensión de tríceps con mancuerna", searchTerm: "tricep extension" }, // antes: "overhead tricep extension"
+    { name: "extensión de tríceps con mancuerna", searchTerm: "tricep extension" },
   ],
   "Pierna": [
     { name: "sentadilla", searchTerm: "squat" },
@@ -46,7 +46,6 @@ export const COMMON_EXERCISES_BY_MUSCLE_GROUP: Record<string, CommonExercise[]> 
     { name: "femorales", searchTerm: "leg curl" },
     { name: "pantorrillas", searchTerm: "standing calf raise" },
   ],
-  
   "Cuádriceps": [
     { name: "sentadilla", searchTerm: "squat" },
     { name: "prensa", searchTerm: "leg press" },
@@ -56,12 +55,13 @@ export const COMMON_EXERCISES_BY_MUSCLE_GROUP: Record<string, CommonExercise[]> 
   "Femorales": [
     { name: "peso muerto rumano", searchTerm: "romanian deadlift" },
     { name: "curl femoral", searchTerm: "leg curl" },
-    { name: "hiperextensiones", searchTerm: "back extension" },
     { name: "pantorrillas", searchTerm: "standing calf raise" },
+    
   ],
   "Glúteo": [
     { name: "hip thrust", searchTerm: "hip thrust" },
     { name: "aductores", searchTerm: "hip adduction" },
-    { name: "patada de glúteo en polea", searchTerm: "glute kickback" },
+    { name: "extensión de glúteos en polea", searchTerm: "glute kickback" }, 
+    { name: "abducción en máquina", searchTerm: "Machine Hip Abduction" },
   ],
 };
