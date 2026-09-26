@@ -1,15 +1,12 @@
 import "dotenv/config";
-import fs from "fs";
-import path from "path";
 import { prisma } from "../src/config/prisma";
 import { COMMON_EXERCISES_BY_MUSCLE_GROUP } from "../src/data/commonExercises";
 
-const OUTPUT_DIR = path.join(__dirname, "../uploads/exercise-templates");
 const WGER_LANGUAGE_ENGLISH = 2;
 
 const MANUAL_MATCHES: Record<string, number> = {
   "press banca": 73,
-  "remo con agarre abierto": 1119, 
+  "remo con agarre abierto": 1119,
   "curl martillo": 1567,
   "fondos en banco": 197,
   "curl en banco inclinado": 1448,
@@ -32,32 +29,25 @@ async function fetchLicenseNames(): Promise<Record<number, string>> {
   return map;
 }
 
-async function downloadMainImage(baseId: number, name: string): Promise<{ fileName: string; mainImage: any } | null> {
+// Ya NO descarga el archivo — guarda directo la URL de wger.de como imageUrl.
+// wger aloja las imágenes permanentemente, así que no hace falta rehospedarlas
+// (y evita el problema de que Railway no tiene el archivo en su propio disco).
+async function fetchMainImage(baseId: number): Promise<any | null> {
   const infoRes = await fetch(`https://wger.de/api/v2/exerciseinfo/${baseId}/?format=json`);
   const info: any = await infoRes.json();
   const images = info.images ?? [];
-  const mainImage = images.find((img: any) => img.is_main) || images[0];
-  if (!mainImage) return null;
-
-  const imgRes = await fetch(mainImage.image);
-  const buffer = Buffer.from(await imgRes.arrayBuffer());
-  const ext = path.extname(mainImage.image) || ".png";
-  const fileName = `${name.replace(/\s+/g, "-")}-${Date.now()}${ext}`;
-  fs.writeFileSync(path.join(OUTPUT_DIR, fileName), buffer);
-
-  return { fileName, mainImage };
+  return images.find((img: any) => img.is_main) || images[0] || null;
 }
 
 async function saveTemplate(
   name: string,
   baseId: number,
-  fileName: string,
   mainImage: any,
   licenseNames: Record<number, string>
 ) {
   const data = {
     exerciseName: name,
-    imageUrl: `/uploads/exercise-templates/${fileName}`,
+    imageUrl: mainImage.image, // URL absoluta de wger.de
     license: licenseNames[mainImage.license] ?? `license-${mainImage.license}`,
     licenseTitle: mainImage.license_title || null,
     licenseAuthor: mainImage.license_author || null,
@@ -68,10 +58,10 @@ async function saveTemplate(
   const existing = await prisma.exerciseImageTemplate.findFirst({ where: { exerciseName: name } });
   if (existing) {
     await prisma.exerciseImageTemplate.update({ where: { id: existing.id }, data });
-    console.log(`  ✔ Actualizado: "${name}" → ${fileName}`);
+    console.log(`  ✔ Actualizado: "${name}"`);
   } else {
     await prisma.exerciseImageTemplate.create({ data });
-    console.log(`  ✔ Guardado: "${name}" → ${fileName}`);
+    console.log(`  ✔ Guardado: "${name}"`);
   }
 }
 
@@ -128,11 +118,11 @@ async function processAutomatic(licenseNames: Record<number, string>, wgerTransl
 
     let saved = false;
     for (const candidate of candidates) {
-      const result = await downloadMainImage(candidate.baseId, name);
-      if (!result) continue; // prueba el siguiente candidato
+      const mainImage = await fetchMainImage(candidate.baseId);
+      if (!mainImage) continue; // prueba el siguiente candidato
 
       console.log(`Guardando "${name}" → wger: "${candidate.name}" (base id ${candidate.baseId})`);
-      await saveTemplate(name, candidate.baseId, result.fileName, result.mainImage, licenseNames);
+      await saveTemplate(name, candidate.baseId, mainImage, licenseNames);
       saved = true;
       break;
     }
@@ -152,20 +142,18 @@ async function processManual(licenseNames: Record<number, string>) {
       continue;
     }
 
-    const result = await downloadMainImage(baseId, name);
-    if (!result) {
+    const mainImage = await fetchMainImage(baseId);
+    if (!mainImage) {
       console.warn(`  ✗ base_id ${baseId} ("${name}") tampoco tiene imágenes en wger`);
       continue;
     }
 
-    await saveTemplate(name, baseId, result.fileName, result.mainImage, licenseNames);
+    await saveTemplate(name, baseId, mainImage, licenseNames);
     await new Promise((r) => setTimeout(r, 300));
   }
 }
 
 async function main() {
-  if (!fs.existsSync(OUTPUT_DIR)) fs.mkdirSync(OUTPUT_DIR, { recursive: true });
-
   console.log("Descargando catálogo de licencias...");
   const licenseNames = await fetchLicenseNames();
 

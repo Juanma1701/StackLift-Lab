@@ -7,15 +7,15 @@ export const COMMON_EXERCISES_BY_MUSCLE_GROUP: Record<string, CommonExercise[]> 
     { name: "press banca", searchTerm: "bench press" },
     { name: "press inclinado", searchTerm: "incline bench press" },
     { name: "pecho en máquina", searchTerm: "chest press machine" },
-    { name: "aperturas en máquina", searchTerm: "chest fly" }, // antes: "pec deck"
+    { name: "aperturas en máquina", searchTerm: "chest fly" }, 
   ],
   "Tríceps": [
     { name: "extensión en polea", searchTerm: "tricep pushdown" },
     { name: "press francés", searchTerm: "skullcrusher" },
-    { name: "fondos en banco", searchTerm: "tricep dip" }, // antes: "bench dip"
+    { name: "fondos en banco", searchTerm: "tricep dip" }, 
   ],
   "Hombro": [
-    { name: "press militar", searchTerm: "military press" }, // antes: "overhead press"
+    { name: "press militar", searchTerm: "military press" }, 
     { name: "elevaciones laterales", searchTerm: "lateral raise" },
     { name: "hombro posterior", searchTerm: "rear delt fly" },
   ],

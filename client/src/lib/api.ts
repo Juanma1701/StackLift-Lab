@@ -9,7 +9,9 @@ if (!API_URL) {
 export const SERVER_URL = API_URL.replace(/\/api$/, "");;
 
 export function getFullImageUrl(path: string | null): string | null {
-  return path ? `${SERVER_URL}${path}` : null;
+  if (!path) return null;
+  if (path.startsWith("http")) return path; // URL absoluta (ej. imágenes de wger.de)
+  return `${SERVER_URL}${path}`; // ruta relativa (imágenes subidas por el usuario)
 }
 
 async function request(path: string, options: RequestInit = {}, opts: { silent?: boolean } = {}) {
