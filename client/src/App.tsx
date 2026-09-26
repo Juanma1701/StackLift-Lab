@@ -16,6 +16,7 @@ const Progress = lazy(() => import("@/pages/Progress").then((m) => ({ default: m
 const Profile = lazy(() => import("@/pages/Profile").then((m) => ({ default: m.Profile })));
 const PublicProgress = lazy(() => import("@/pages/PublicProgress").then((m) => ({ default: m.PublicProgress })));
 const TerminosDeUso = lazy(() => import("@/pages/TerminosDeUso").then((m) => ({ default: m.TerminosDeUso })));
+const Guide = lazy(() => import("./pages/Guide"));
 
 function PageFallback() {
   return (
@@ -51,6 +52,7 @@ export default function App() {
               <Route path="/historial" element={<ProtectedRoute><History /></ProtectedRoute>} />
               <Route path="/progreso" element={<ProtectedRoute><Progress /></ProtectedRoute>} />
               <Route path="/perfil" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+              <Route path="/guia" element={<ProtectedRoute><Guide /></ProtectedRoute>} />
             </Routes>
           </Suspense>
           <ToastContainer />

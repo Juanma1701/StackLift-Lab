@@ -18,6 +18,7 @@ export function Navbar() {
     { to: "/", label: "Dashboard" },
     { to: "/historial", label: "Historial" },
     { to: "/progreso", label: "Progreso" },
+    { to: "/guia", label: "Guía" },
     { to: "/perfil", label: "Perfil" },
   ];
 

@@ -5,6 +5,7 @@ import { MonthlyCalendar } from "@/components/MonthlyCalendar";
 import { DashboardStats } from "@/components/DashboardStats";
 import { DashboardMobilePanel } from "@/components/DashboardMobilePanel";
 import { DailyCheckInButton } from "@/components/DailyCheckInButton";
+import { LostBanner } from "@/components/LostBanner";
 import { useRoutines } from "@/hooks/useRoutines";
 import { useAuth } from "@/context/AuthContext";
 
@@ -77,6 +78,10 @@ export function Dashboard() {
                   ))}
                 </div>
               )}
+
+              <div className="mt-6">
+                <LostBanner />
+              </div>
             </div>
 
             <aside className="hidden lg:block w-[260px] flex-shrink-0 pt-[92px]">
