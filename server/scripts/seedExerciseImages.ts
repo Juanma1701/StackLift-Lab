@@ -12,6 +12,8 @@ const MANUAL_MATCHES: Record<string, number> = {
   "curl en banco inclinado": 1448,
   "barra z con agarre prono de pie": 94,
   "extensión de tríceps con mancuerna": 1336,
+  "curl en máquina": 1109,
+  "peso muerto rumano con barra": 507,
 };
 
 interface WgerTranslation {

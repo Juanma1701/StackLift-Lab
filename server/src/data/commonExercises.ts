@@ -23,7 +23,7 @@ export const COMMON_EXERCISES_BY_MUSCLE_GROUP: Record<string, CommonExercise[]> 
     { name: "jalón al pecho", searchTerm: "lat pulldown" },
     { name: "remo con agarre abierto", searchTerm: "seated cable row wide grip" },
     { name: "remo con agarre cerrado", searchTerm: "seated cable row close grip" },
-    { name: "peso muerto", searchTerm: "deadlift" },
+    { name: "peso muerto rumano con barra", searchTerm: "deadlift" },
   ],
   "Bíceps": [
     { name: "curl en banco inclinado", searchTerm: "incline curl" }, // antes: "incline dumbbell curl"
