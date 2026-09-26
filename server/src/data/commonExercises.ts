@@ -1,6 +1,6 @@
 export interface CommonExercise {
-  name: string; // nombre en español que se guardará en tu BD
-  searchTerm: string; // término de búsqueda en inglés para la API de wger
+  name: string; 
+  searchTerm: string; 
 }
 export const COMMON_EXERCISES_BY_MUSCLE_GROUP: Record<string, CommonExercise[]> = {
   "Pecho": [
@@ -21,13 +21,13 @@ export const COMMON_EXERCISES_BY_MUSCLE_GROUP: Record<string, CommonExercise[]> 
   ],
   "Espalda": [
     { name: "jalón al pecho", searchTerm: "lat pulldown" },
-    { name: "remo con agarre abierto", searchTerm: "seated cable row" }, // antes: "wide grip seated row"
-    { name: "remo con agarre cerrado", searchTerm: "seated cable row" }, // antes: "close grip seated row" — revisa si quieres diferenciarlos de otra forma
+    { name: "remo con agarre abierto", searchTerm: "seated cable row wide grip" },
+    { name: "remo con agarre cerrado", searchTerm: "seated cable row close grip" },
     { name: "peso muerto", searchTerm: "deadlift" },
   ],
   "Bíceps": [
     { name: "curl en banco inclinado", searchTerm: "incline curl" }, // antes: "incline dumbbell curl"
-    { name: "curl militar", searchTerm: "preacher curl" },
+    { name: "curl martillo", searchTerm: "hammer curl" }, // antes: "curl militar"
     { name: "curl en máquina", searchTerm: "cable curl" },
     { name: "polea con agarre prono de pie", searchTerm: "cable curl" },
   ],
@@ -44,6 +44,19 @@ export const COMMON_EXERCISES_BY_MUSCLE_GROUP: Record<string, CommonExercise[]> 
     { name: "prensa", searchTerm: "leg press" },
     { name: "extensiones", searchTerm: "leg extension" },
     { name: "femorales", searchTerm: "leg curl" },
+    { name: "pantorrillas", searchTerm: "standing calf raise" },
+  ],
+  
+  "Cuádriceps": [
+    { name: "sentadilla", searchTerm: "squat" },
+    { name: "prensa", searchTerm: "leg press" },
+    { name: "extensiones", searchTerm: "leg extension" },
+    { name: "zancadas", searchTerm: "lunge" },
+  ],
+  "Femorales": [
+    { name: "peso muerto rumano", searchTerm: "romanian deadlift" },
+    { name: "curl femoral", searchTerm: "leg curl" },
+    { name: "hiperextensiones", searchTerm: "back extension" },
     { name: "pantorrillas", searchTerm: "standing calf raise" },
   ],
   "Glúteo": [

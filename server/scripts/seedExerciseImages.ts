@@ -8,15 +8,17 @@ const OUTPUT_DIR = path.join(__dirname, "../uploads/exercise-templates");
 const WGER_LANGUAGE_ENGLISH = 2;
 
 const MANUAL_MATCHES: Record<string, number> = {
-  "fondos en banco": 197, // reemplaza el 0 por el id real
+  "press banca": 73,
+  "remo con agarre abierto": 1119, 
+  "curl martillo": 1567,
+  "fondos en banco": 197,
   "curl en banco inclinado": 1448,
   "barra z con agarre prono de pie": 94,
   "extensión de tríceps con mancuerna": 1336,
-  // "remo con agarre cerrado": 0, // opcional, si quieres una imagen distinta a la de agarre abierto
 };
 
 interface WgerTranslation {
-  baseId: number; 
+  baseId: number;
   name: string;
 }
 
@@ -160,8 +162,6 @@ async function processManual(licenseNames: Record<number, string>) {
     await new Promise((r) => setTimeout(r, 300));
   }
 }
-
-// ---------- main ----------
 
 async function main() {
   if (!fs.existsSync(OUTPUT_DIR)) fs.mkdirSync(OUTPUT_DIR, { recursive: true });

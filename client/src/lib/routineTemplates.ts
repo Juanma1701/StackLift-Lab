@@ -31,9 +31,9 @@ export const ROUTINE_TEMPLATES: RoutineTemplate[] = [
     description: "Tren superior e inferior alternados, con un día extra de refuerzo.",
     days: {
       1: ["Pecho", "Espalda", "Hombro"],
-      2: ["Pierna", "Glúteo"],
+      2: ["Cuádriceps", "Glúteo"],
       3: ["Brazos", "Hombro"],
-      4: ["Pierna", "Glúteo"],
+      4: ["Femorales", "Glúteo"],
       5: ["Pecho", "Espalda"],
     },
   },
