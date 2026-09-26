@@ -28,11 +28,11 @@ export const ROUTINE_TEMPLATES: RoutineTemplate[] = [
   {
     id: "upper-lower",
     label: "Upper / Lower",
-    description: "Tren superior e inferior alternados, con un día extra de refuerzo.",
+    description: "Tren superior e inferior alternados, con un día extra de refuerzo de brazos y hombro.",
     days: {
       1: ["Pecho", "Espalda", "Hombro"],
-      2: ["Cuádriceps", "Glúteo"],
-      3: ["Brazos", "Hombro"],
+      2: ["Cuádriceps"],
+      3: ["Hombro", "Bíceps", "Tríceps", "Antebrazos"],
       4: ["Femorales", "Glúteo"],
       5: ["Pecho", "Espalda"],
     },
@@ -40,13 +40,13 @@ export const ROUTINE_TEMPLATES: RoutineTemplate[] = [
   {
     id: "full-body",
     label: "Full Body",
-    description: "Cuerpo completo 3 veces por semana, con descanso entre sesiones.",
+    description: "Cuerpo completo 3 veces por semana — mismos grupos que el PPL, en menor volumen por sesión.",
     days: {
-      1: ["Pecho", "Espalda", "Pierna"],
+      1: ["Pecho", "Tríceps", "Hombro", "Espalda", "Bíceps", "Antebrazos", "Pierna"],
       2: [],
-      3: ["Hombro", "Brazos", "Pierna"],
+      3: ["Pecho", "Tríceps", "Hombro", "Espalda", "Bíceps", "Antebrazos", "Pierna"],
       4: [],
-      5: ["Pecho", "Espalda", "Pierna"],
+      5: ["Pecho", "Tríceps", "Hombro", "Espalda", "Bíceps", "Antebrazos", "Pierna"],
     },
   },
 ];
