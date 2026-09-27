@@ -26,6 +26,13 @@ jobs:
           mkdir -p backups
           /usr/lib/postgresql/18/bin/pg_dump "${{ secrets.DATABASE_UNPOOLED_URL }}" > backups/backup-$(date +%Y-%m-%d).sql
 
+      - name: Cifrar el backup
+        run: |
+          gpg --batch --yes --passphrase "${{ secrets.BACKUP_ENCRYPTION_PASSPHRASE }}" \
+            --symmetric --cipher-algo AES256 \
+            backups/backup-$(date +%Y-%m-%d).sql
+          rm backups/backup-$(date +%Y-%m-%d).sql
+
       - name: Commitear el backup al repo
         run: |
           git config user.name "backup-bot"
@@ -36,7 +43,7 @@ jobs:
 
       - name: Borrar backups de más de 14 días
         run: |
-          find backups/ -name "*.sql" -mtime +14 -delete
+          find backups/ -name "*.sql.gpg" -mtime +14 -delete
           git add backups/
           git commit -m "Limpieza de backups viejos" || echo "Nada para limpiar"
           git push
