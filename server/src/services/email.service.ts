@@ -1,16 +1,16 @@
-import nodemailer from "nodemailer";
+import { sendMail } from "./mailer";
 
-const transporter = nodemailer.createTransport({
-  service: "gmail",
-  auth: {
-    user: process.env.GMAIL_USER,
-    pass: process.env.GMAIL_APP_PASSWORD,
-  },
-});
+function escapeHtml(str: string): string {
+  return str
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
 
 export async function sendPasswordResetEmail(to: string, resetUrl: string) {
-  await transporter.sendMail({
-    from: `"StackLift Lab" <${process.env.GMAIL_USER}>`,
+  await sendMail({
     to,
     subject: "Restablece tu contraseña — StackLift Lab",
     html: `
@@ -29,8 +29,7 @@ export async function sendPasswordResetEmail(to: string, resetUrl: string) {
 }
 
 export async function sendVerificationEmail(to: string, verifyUrl: string) {
-  await transporter.sendMail({
-    from: `"StackLift Lab" <${process.env.GMAIL_USER}>`,
+  await sendMail({
     to,
     subject: "Verifica tu correo — StackLift Lab",
     html: `
@@ -49,13 +48,12 @@ export async function sendVerificationEmail(to: string, verifyUrl: string) {
 }
 
 export async function sendAdminMessageEmail(to: string, subject: string, message: string) {
-  await transporter.sendMail({
-    from: `"StackLift Lab" <${process.env.GMAIL_USER}>`,
+  await sendMail({
     to,
     subject,
     html: `
       <div style="font-family: sans-serif; max-width: 480px; margin: 0 auto;">
-        <p>${message.replace(/\n/g, "<br>")}</p>
+        <p>${escapeHtml(message).replace(/\n/g, "<br>")}</p>
       </div>
     `,
   });
