@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Menu, X, Timer } from "lucide-react";
+import { Menu, X, Timer, ShieldCheck, MessageSquarePlus } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { useRestTimer } from "@/context/RestTimerContext";
+import { ReportModal } from "@/components/ReportModal";
 
 const PRESETS = [60, 90, 120];
 
@@ -11,6 +12,7 @@ export function Navbar() {
   const location = useLocation();
   const [menuOpen, setMenuOpen] = useState(false);
   const [timerOpen, setTimerOpen] = useState(false);
+  const [reportOpen, setReportOpen] = useState(false);
   const { active, secondsLeft, duration, running, finished, dismiss, adjust, restart, toggleRunning } =
     useRestTimer();
 
@@ -30,7 +32,7 @@ export function Navbar() {
     <nav className="border-b border-border bg-card relative">
       <div className="flex items-center justify-between px-6 py-4">
         <div className="flex items-center gap-6">
-          <span className="font-bold text-lg">💪 Gym Tracker</span>
+          <span className="font-bold text-lg">💪 StackLift Lab</span>
           <div className="hidden sm:flex items-center gap-1">
             {links.map((link) => (
               <Link
@@ -45,10 +47,32 @@ export function Navbar() {
                 {link.label}
               </Link>
             ))}
+            {user?.isAdmin && (
+              <Link
+                to="/admin"
+                className={`flex items-center gap-1 text-sm px-3 py-1.5 rounded-md transition-colors ${
+                  location.pathname === "/admin"
+                    ? "bg-primary text-primary-foreground font-medium"
+                    : "text-muted-foreground hover:bg-secondary"
+                }`}
+              >
+                <ShieldCheck size={14} />
+                Admin
+              </Link>
+            )}
           </div>
         </div>
 
         <div className="flex items-center gap-3">
+          <button
+            onClick={() => setReportOpen(true)}
+            title="Reportar error o sugerir idea"
+            className="flex items-center gap-1.5 text-sm px-2.5 py-1.5 rounded-md bg-secondary hover:bg-muted transition-colors"
+          >
+            <MessageSquarePlus size={14} />
+            <span className="hidden sm:inline">Reportar</span>
+          </button>
+
           {active && (
             <div className="relative">
               <button
@@ -146,6 +170,19 @@ export function Navbar() {
               {link.label}
             </Link>
           ))}
+          {user?.isAdmin && (
+            <Link
+              to="/admin"
+              onClick={() => setMenuOpen(false)}
+              className={`block text-sm px-3 py-2 rounded-md ${
+                location.pathname === "/admin"
+                  ? "bg-primary text-primary-foreground font-medium"
+                  : "text-muted-foreground hover:bg-secondary"
+              }`}
+            >
+              Admin
+            </Link>
+          )}
           <button
             onClick={logout}
             className="w-full text-left text-sm px-3 py-2 rounded-md bg-secondary hover:bg-muted"
@@ -154,6 +191,8 @@ export function Navbar() {
           </button>
         </div>
       )}
+
+      {reportOpen && <ReportModal onClose={() => setReportOpen(false)} />}
     </nav>
   );
 }

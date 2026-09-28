@@ -2,8 +2,20 @@ import { prisma } from "../config/prisma";
 
 export async function assertRoutineOwner(routineId: string, userId: string) {
   const routine = await prisma.routine.findUnique({ where: { id: routineId } });
-  if (!routine || routine.userId !== userId) {
+
+  if (!routine || routine.userId !== userId || routine.deletedAt !== null) {
     const err: any = new Error("Rutina no encontrada");
+    err.status = 404;
+    throw err;
+  }
+  return routine;
+}
+
+export async function assertTrashedRoutineOwner(routineId: string, userId: string) {
+  const routine = await prisma.routine.findUnique({ where: { id: routineId } });
+
+  if (!routine || routine.userId !== userId || routine.deletedAt === null) {
+    const err: any = new Error("Rutina no encontrada en la papelera");
     err.status = 404;
     throw err;
   }
@@ -41,8 +53,21 @@ export async function assertExerciseOwner(exerciseId: string, userId: string) {
     where: { id: exerciseId },
     include: { muscleGroup: { include: { routineDay: { include: { routine: true } } } } },
   });
-  if (!exercise || exercise.muscleGroup.routineDay.routine.userId !== userId) {
+  if (!exercise || exercise.muscleGroup.routineDay.routine.userId !== userId || exercise.deletedAt !== null) {
     const err: any = new Error("Ejercicio no encontrado");
+    err.status = 404;
+    throw err;
+  }
+  return exercise;
+}
+
+export async function assertTrashedExerciseOwner(exerciseId: string, userId: string) {
+  const exercise = await prisma.exercise.findUnique({
+    where: { id: exerciseId },
+    include: { muscleGroup: { include: { routineDay: { include: { routine: true } } } } },
+  });
+  if (!exercise || exercise.muscleGroup.routineDay.routine.userId !== userId || exercise.deletedAt === null) {
+    const err: any = new Error("Ejercicio no encontrado en la papelera");
     err.status = 404;
     throw err;
   }

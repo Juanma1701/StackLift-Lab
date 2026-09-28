@@ -41,7 +41,7 @@ export function PublicProgress() {
   return (
     <div className="min-h-screen bg-background">
       <header className="border-b border-border px-6 py-4">
-        <p className="font-display font-bold text-lg tracking-wide">💪 Gym Tracker</p>
+        <p className="font-display font-bold text-lg tracking-wide">💪 StackLift Lab</p>
       </header>
 
       <main className="max-w-4xl mx-auto px-6 py-8">

@@ -1,12 +1,13 @@
 import { Response } from "express";
 import { prisma } from "../config/prisma";
 import { AuthRequest } from "../middleware/auth";
-import { assertRoutineOwner } from "../middleware/ownership";
+import { assertRoutineOwner, assertTrashedRoutineOwner } from "../middleware/ownership";
 import { COMMON_EXERCISES_BY_MUSCLE_GROUP } from "../data/commonExercises";
+import { TRASH_RETENTION_MS } from "../config/trash";
 
 export async function listRoutines(req: AuthRequest, res: Response) {
   const routines = await prisma.routine.findMany({
-    where: { userId: req.userId },
+    where: { userId: req.userId, deletedAt: null },
     orderBy: { createdAt: "asc" },
     select: { id: true, name: true, updatedAt: true },
   });
@@ -16,7 +17,7 @@ export async function listRoutines(req: AuthRequest, res: Response) {
 export async function createRoutine(req: AuthRequest, res: Response) {
   const { name, template } = req.body as {
     name: string;
-    template?: Record<number, string[]>; // { 1: ["Pecho", "Tríceps"], 2: [], ... }
+    template?: Record<number, string[]>;
   };
   if (!name) return res.status(400).json({ message: "El nombre es obligatorio" });
 
@@ -59,7 +60,7 @@ export async function getRoutine(req: AuthRequest, res: Response) {
         include: {
           muscleGroups: {
             orderBy: { order: "asc" },
-            include: { exercises: { orderBy: { order: "asc" } } },
+            include: { exercises: { where: { deletedAt: null }, orderBy: { order: "asc" } } },
           },
         },
       },
@@ -81,8 +82,53 @@ export async function renameRoutine(req: AuthRequest, res: Response) {
 
 export async function deleteRoutine(req: AuthRequest, res: Response) {
   await assertRoutineOwner(req.params.id, req.userId!);
+
+  const routine = await prisma.routine.update({
+    where: { id: req.params.id },
+    data: { deletedAt: new Date() },
+  });
+
+  res.json({
+    message: "Rutina movida a la papelera. Se elimina definitivamente en 72 horas.",
+    deletedAt: routine.deletedAt,
+  });
+}
+
+export async function listTrash(req: AuthRequest, res: Response) {
+  const cutoff = new Date(Date.now() - TRASH_RETENTION_MS);
+
+  const routines = await prisma.routine.findMany({
+    where: {
+      userId: req.userId,
+      deletedAt: { not: null, gt: cutoff },
+    },
+    orderBy: { deletedAt: "desc" },
+    select: { id: true, name: true, deletedAt: true },
+  });
+
+  const withExpiry = routines.map((r) => ({
+    ...r,
+    expiresAt: new Date(r.deletedAt!.getTime() + TRASH_RETENTION_MS),
+  }));
+
+  res.json(withExpiry);
+}
+
+export async function restoreRoutine(req: AuthRequest, res: Response) {
+  await assertTrashedRoutineOwner(req.params.id, req.userId!);
+
+  const routine = await prisma.routine.update({
+    where: { id: req.params.id },
+    data: { deletedAt: null },
+  });
+
+  res.json({ message: "Rutina restaurada", routine });
+}
+
+export async function permanentlyDeleteRoutine(req: AuthRequest, res: Response) {
+  await assertTrashedRoutineOwner(req.params.id, req.userId!);
   await prisma.routine.delete({ where: { id: req.params.id } });
-  res.json({ message: "Rutina eliminada" });
+  res.json({ message: "Rutina eliminada definitivamente" });
 }
 
 export async function copyDay(req: AuthRequest, res: Response) {
@@ -99,7 +145,12 @@ export async function copyDay(req: AuthRequest, res: Response) {
 
   const sourceDay = await prisma.routineDay.findUnique({
     where: { routineId_dayOfWeek: { routineId: req.params.id, dayOfWeek: sourceDayOfWeek } },
-    include: { muscleGroups: { include: { exercises: true }, orderBy: { order: "asc" } } },
+    include: {
+      muscleGroups: {
+        include: { exercises: { where: { deletedAt: null } } },
+        orderBy: { order: "asc" },
+      },
+    },
   });
 
   if (!sourceDay) {
@@ -115,10 +166,8 @@ export async function copyDay(req: AuthRequest, res: Response) {
   }
 
   const updatedTargetDay = await prisma.$transaction(async (tx) => {
-    // Borra lo que ya había en el día destino (cascada borra sus exercises)
     await tx.muscleGroup.deleteMany({ where: { routineDayId: targetDay.id } });
 
-    // Recrea cada grupo muscular y sus ejercicios, copiando también imageUrl
     for (const group of sourceDay.muscleGroups) {
       await tx.muscleGroup.create({
         data: {

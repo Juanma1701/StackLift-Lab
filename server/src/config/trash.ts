@@ -1,0 +1,1 @@
+export const TRASH_RETENTION_MS = 72 * 60 * 60 * 1000; // 72 horas

@@ -3,6 +3,50 @@ export interface User {
   name: string;
   email: string;
   avatarUrl: string | null;
+  emailVerified: boolean;
+  isAdmin: boolean;
+  twoFactorEnabled: boolean;
+}
+
+export interface AdminUser {
+  id: string;
+  name: string;
+  email: string;
+  avatarUrl: string | null;
+  emailVerified: boolean;
+  isAdmin: boolean;
+  failedLoginAttempts: number;
+  lockedUntil: string | null;
+  createdAt: string;
+  lastLoginAt: string | null;
+  lastActiveAt: string | null;
+}
+
+export interface AdminExerciseImage {
+  exerciseId: string;
+  exerciseName: string;
+  imageUrl: string | null;
+  createdAt: string;
+  owner: { id: string; name: string; email: string };
+}
+
+export interface TrustedDevice {
+  id: string;
+  userAgent: string | null;
+  createdAt: string;
+  lastUsedAt: string;
+  expiresAt: string;
+}
+
+export interface SupportTicket {
+  id: string;
+  userId: string | null;
+  email: string;
+  subject: string;
+  message: string;
+  type: "bug" | "idea" | "other";
+  status: "open" | "resolved";
+  createdAt: string;
 }
 
 export interface Exercise {
@@ -100,4 +144,21 @@ export interface DailyCheckIn {
   notes: string | null;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface TrashedRoutine {
+  id: string;
+  name: string;
+  deletedAt: string;
+  expiresAt: string;
+}
+
+export interface TrashedExercise {
+  id: string;
+  name: string;
+  deletedAt: string;
+  expiresAt: string;
+  muscleGroupName: string;
+  routineName: string;
+  dayOfWeek: number;
 }

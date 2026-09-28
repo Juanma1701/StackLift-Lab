@@ -1,7 +1,8 @@
 import { Response } from "express";
 import { prisma } from "../config/prisma";
 import { AuthRequest } from "../middleware/auth";
-import { assertMuscleGroupOwner, assertExerciseOwner } from "../middleware/ownership";
+import { assertMuscleGroupOwner, assertExerciseOwner, assertTrashedExerciseOwner } from "../middleware/ownership";
+import { TRASH_RETENTION_MS } from "../config/trash";
 import fs from "fs";
 import path from "path";
 
@@ -10,7 +11,9 @@ export async function createExercise(req: AuthRequest, res: Response) {
   const { name, targetSets, targetReps, targetWeight } = req.body;
   if (!name) return res.status(400).json({ message: "El nombre del ejercicio es obligatorio" });
 
-  const count = await prisma.exercise.count({ where: { muscleGroupId: req.params.muscleGroupId } });
+  const count = await prisma.exercise.count({
+    where: { muscleGroupId: req.params.muscleGroupId, deletedAt: null },
+  });
 
   const exercise = await prisma.exercise.create({
     data: {
@@ -58,8 +61,67 @@ export async function updateExercise(req: AuthRequest, res: Response) {
 
 export async function deleteExercise(req: AuthRequest, res: Response) {
   await assertExerciseOwner(req.params.id, req.userId!);
+
+  const exercise = await prisma.exercise.update({
+    where: { id: req.params.id },
+    data: { deletedAt: new Date() },
+  });
+
+  res.json({
+    message: "Ejercicio movido a la papelera. Se elimina definitivamente en 72 horas.",
+    deletedAt: exercise.deletedAt,
+  });
+}
+
+export async function listExerciseTrash(req: AuthRequest, res: Response) {
+  const cutoff = new Date(Date.now() - TRASH_RETENTION_MS);
+
+  const exercises = await prisma.exercise.findMany({
+    where: {
+      deletedAt: { not: null, gt: cutoff },
+      muscleGroup: { routineDay: { routine: { userId: req.userId } } },
+    },
+    orderBy: { deletedAt: "desc" },
+    include: {
+      muscleGroup: {
+        select: {
+          name: true,
+          routineDay: {
+            select: { dayOfWeek: true, routine: { select: { name: true } } },
+          },
+        },
+      },
+    },
+  });
+
+  const withContext = exercises.map((ex) => ({
+    id: ex.id,
+    name: ex.name,
+    deletedAt: ex.deletedAt,
+    expiresAt: new Date(ex.deletedAt!.getTime() + TRASH_RETENTION_MS),
+    muscleGroupName: ex.muscleGroup.name,
+    routineName: ex.muscleGroup.routineDay.routine.name,
+    dayOfWeek: ex.muscleGroup.routineDay.dayOfWeek,
+  }));
+
+  res.json(withContext);
+}
+
+export async function restoreExercise(req: AuthRequest, res: Response) {
+  await assertTrashedExerciseOwner(req.params.id, req.userId!);
+
+  const exercise = await prisma.exercise.update({
+    where: { id: req.params.id },
+    data: { deletedAt: null },
+  });
+
+  res.json({ message: "Ejercicio restaurado", exercise });
+}
+
+export async function permanentlyDeleteExercise(req: AuthRequest, res: Response) {
+  await assertTrashedExerciseOwner(req.params.id, req.userId!);
   await prisma.exercise.delete({ where: { id: req.params.id } });
-  res.json({ message: "Ejercicio eliminado" });
+  res.json({ message: "Ejercicio eliminado definitivamente" });
 }
 
 export async function moveExercise(req: AuthRequest, res: Response) {
@@ -69,6 +131,7 @@ export async function moveExercise(req: AuthRequest, res: Response) {
   const sibling = await prisma.exercise.findFirst({
     where: {
       muscleGroupId: exercise.muscleGroupId,
+      deletedAt: null,
       order: direction === "up" ? { lt: exercise.order } : { gt: exercise.order },
     },
     orderBy: { order: direction === "up" ? "desc" : "asc" },
@@ -94,10 +157,17 @@ export async function uploadExerciseImage(req: AuthRequest, res: Response) {
     fs.unlink(oldPath, () => {});
   }
 
+  const uploadsDir = path.join(__dirname, "../../uploads");
+  if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
+
+  const ext = req.file.mimetype === "image/png" ? ".png" : req.file.mimetype === "image/webp" ? ".webp" : ".jpg";
+  const filename = `${Date.now()}-${Math.round(Math.random() * 1e9)}${ext}`;
+  fs.writeFileSync(path.join(uploadsDir, filename), req.file.buffer);
+
   const exercise = await prisma.exercise.update({
     where: { id: req.params.id },
     data: {
-      imageUrl: `/uploads/${req.file.filename}`,
+      imageUrl: `/uploads/${filename}`,
       imageSource: "user",
       imageLicenseAuthor: null,
       imageLicenseUrl: null,

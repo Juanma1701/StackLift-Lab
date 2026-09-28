@@ -1,5 +1,5 @@
 import { useState, FormEvent } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { PasswordInput } from "@/components/PasswordInput";
 
@@ -7,16 +7,17 @@ const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export function Register() {
   const { register } = useAuth();
-  const navigate = useNavigate();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     setError("");
+    setSuccess("");
 
     if (name.trim().length < 2) return setError("El nombre debe tener al menos 2 caracteres");
     if (!EMAIL_REGEX.test(email)) return setError("Ingresa un correo electrónico válido");
@@ -24,11 +25,25 @@ export function Register() {
     if (password !== confirm) return setError("Las contraseñas no coinciden");
 
     try {
-      await register(name, email, password);
-      navigate("/");
+      const result = await register(name, email, password);
+      setSuccess(result.message);
     } catch (err: any) {
       setError(err.message);
     }
+  }
+
+  if (success) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background px-4">
+        <div className="w-full max-w-sm bg-card p-8 rounded-lg shadow-sm border border-border space-y-4 text-center">
+          <h1 className="font-display font-bold text-2xl tracking-wide">REVISA TU CORREO</h1>
+          <p className="text-sm text-muted-foreground">{success}</p>
+          <Link to="/login" className="text-primary font-medium text-sm inline-block">
+            Ir a iniciar sesión
+          </Link>
+        </div>
+      </div>
+    );
   }
 
   return (

@@ -27,3 +27,17 @@ export const workoutLogSchema = z.object({
     )
     .min(1, "Debes registrar al menos una serie"),
 });
+
+export const moveDirectionSchema = z.object({
+  direction: z.enum(["up", "down"], { message: "Dirección inválida" }),
+});
+
+export const copyDaySchema = z.object({
+  sourceDayOfWeek: z.number().int().min(1, "Día inválido").max(7, "Día inválido"),
+  targetDayOfWeek: z.number().int().min(1, "Día inválido").max(7, "Día inválido"),
+  force: z.boolean().optional(),
+});
+
+export const assignTemplateSchema = z.object({
+  templateId: z.string().trim().min(1, "templateId es obligatorio"),
+});

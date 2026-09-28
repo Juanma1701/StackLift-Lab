@@ -10,8 +10,8 @@ export const SERVER_URL = API_URL.replace(/\/api$/, "");;
 
 export function getFullImageUrl(path: string | null): string | null {
   if (!path) return null;
-  if (path.startsWith("http")) return path; // URL absoluta (ej. imágenes de wger.de)
-  return `${SERVER_URL}${path}`; // ruta relativa (imágenes subidas por el usuario)
+  if (path.startsWith("http")) return path;
+  return `${SERVER_URL}${path}`;
 }
 
 async function request(path: string, options: RequestInit = {}, opts: { silent?: boolean } = {}) {
@@ -31,7 +31,9 @@ async function request(path: string, options: RequestInit = {}, opts: { silent?:
   if (!res.ok) {
     const message = data.message || "Error en la solicitud";
     if (!opts.silent) showToast(message, "error");
-    throw new Error(message);
+    const err = new Error(message) as Error & { code?: string };
+    if (data.code) err.code = data.code;
+    throw err;
   }
   return data;
 }
@@ -61,7 +63,6 @@ async function uploadRequest(path: string, method: string, file: File) {
   return data;
 }
 
-// request sin cookie de sesión — para la ruta pública de compartir
 async function publicRequest(path: string) {
   let res: Response;
   try {
@@ -91,6 +92,37 @@ export const api = {
     request("/auth/forgot-password", { method: "POST", body: JSON.stringify({ email }) }),
   resetPassword: (uid: string, token: string, newPassword: string) =>
     request("/auth/reset-password", { method: "POST", body: JSON.stringify({ uid, token, newPassword }) }),
+  verifyEmail: (uid: string, token: string) =>
+    request(`/auth/verify-email/${token}?uid=${uid}`),
+  resendVerificationEmail: (email: string) =>
+    request("/auth/resend-verification", { method: "POST", body: JSON.stringify({ email }) }),
+  verifyTwoFactorLogin: (code: string, rememberDevice: boolean) =>
+    request("/auth/2fa/verify-login", { method: "POST", body: JSON.stringify({ code, rememberDevice }) }),
+  setupTwoFactor: () => request("/auth/2fa/setup", { method: "POST" }),
+  confirmTwoFactor: (code: string) =>
+    request("/auth/2fa/confirm", { method: "POST", body: JSON.stringify({ code }) }),
+  disableTwoFactor: (code: string) =>
+    request("/auth/2fa/disable", { method: "POST", body: JSON.stringify({ code }) }),
+  listTrustedDevices: () => request("/auth/2fa/trusted-devices"),
+  revokeTrustedDevice: (id: string) =>
+    request(`/auth/2fa/trusted-devices/${id}`, { method: "DELETE" }),
+  createSupportTicket: (email: string, subject: string, message: string) =>
+    request("/support/tickets", { method: "POST", body: JSON.stringify({ email, subject, message }) }),
+  createMyTicket: (type: "bug" | "idea" | "other", subject: string, message: string) =>
+    request("/support/tickets/mine", { method: "POST", body: JSON.stringify({ type, subject, message }) }),
+  adminListTickets: () => request("/admin/tickets"),
+  adminResolveTicket: (id: string) => request(`/admin/tickets/${id}/resolve`, { method: "PATCH" }),
+  adminUnlockAccount: (email: string) =>
+    request("/admin/unlock-account", { method: "POST", body: JSON.stringify({ email }) }),
+  adminListUsers: () => request("/admin/users"),
+  adminUpdateUser: (id: string, data: Partial<{ name: string; isAdmin: boolean; emailVerified: boolean }>) =>
+    request(`/admin/users/${id}`, { method: "PATCH", body: JSON.stringify(data) }),
+  adminDeleteUser: (id: string) => request(`/admin/users/${id}`, { method: "DELETE" }),
+  adminSendUserEmail: (id: string, subject: string, message: string) =>
+    request(`/admin/users/${id}/email`, { method: "POST", body: JSON.stringify({ subject, message }) }),
+  adminListExerciseImages: () => request("/admin/exercise-images"),
+  adminDeleteExerciseImage: (exerciseId: string) =>
+    request(`/admin/exercise-images/${exerciseId}`, { method: "DELETE" }),
   exportData: async () => {
     const res = await fetch(`${API_URL}/export`, { credentials: "include" });
     if (!res.ok) throw new Error("Error al exportar los datos");
@@ -120,6 +152,12 @@ export const api = {
   deleteRoutine: (id: string) => request(`/routines/${id}`, { method: "DELETE" }),
   renameRoutine: (id: string, name: string) =>
     request(`/routines/${id}`, { method: "PATCH", body: JSON.stringify({ name }) }),
+  listTrash: () => request("/routines/trash"),
+  restoreRoutine: (id: string) => request(`/routines/${id}/restore`, { method: "POST" }),
+  permanentlyDeleteRoutine: (id: string) => request(`/routines/${id}/permanent`, { method: "DELETE" }),
+  listExerciseTrash: () => request("/exercises/trash"),
+  restoreExercise: (id: string) => request(`/exercises/${id}/restore`, { method: "POST" }),
+  permanentlyDeleteExercise: (id: string) => request(`/exercises/${id}/permanent`, { method: "DELETE" }),
   getRoutineHistory: (routineId: string) => request(`/routines/${routineId}/history`),
   getCalendarMonth: (year: number, month: number) => request(`/calendar/${year}/${month}`),
   getDashboardStats: () => request(`/stats/dashboard`),

@@ -8,16 +8,26 @@ datasource db {
 }
 
 model User {
-  id          String               @id @default(cuid())
-  name        String
-  email       String               @unique
-  password    String
-  avatarUrl   String?
-  shareToken  String?              @unique
-  createdAt   DateTime             @default(now())
-  checkIns    DailyCheckIn[]
-  routines    Routine[]
-  resetTokens PasswordResetToken[]
+  id                      String                    @id @default(cuid())
+  name                    String
+  email                   String                    @unique
+  password                String
+  avatarUrl               String?
+  shareToken              String?                   @unique
+  emailVerified           Boolean                   @default(false)
+  failedLoginAttempts     Int                       @default(0)
+  lockedUntil             DateTime?
+  isAdmin                 Boolean                   @default(false)
+  lastLoginAt             DateTime?
+  lastActiveAt            DateTime?
+  twoFactorSecret         String?
+  twoFactorEnabled        Boolean                   @default(false)
+  createdAt               DateTime                  @default(now())
+  checkIns                DailyCheckIn[]
+  routines                Routine[]
+  resetTokens             PasswordResetToken[]
+  emailVerificationTokens EmailVerificationToken[]
+  trustedDevices          TrustedDevice[]
 }
 
 model PasswordResetToken {
@@ -32,6 +42,45 @@ model PasswordResetToken {
   @@index([userId])
 }
 
+model EmailVerificationToken {
+  id        String    @id @default(cuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash String
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([userId])
+}
+
+model TrustedDevice {
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash  String
+  userAgent  String?
+  createdAt  DateTime @default(now())
+  lastUsedAt DateTime @default(now())
+  expiresAt  DateTime
+
+  @@index([userId])
+}
+
+model SupportTicket {
+  id        String   @id @default(cuid())
+  userId    String?
+  email     String
+  subject   String
+  message   String
+  type      String   @default("other")
+  status    String   @default("open")
+  createdAt DateTime @default(now())
+
+  @@index([status])
+  @@index([email])
+}
+
 model Routine {
   id        String       @id @default(cuid())
   userId    String
@@ -39,14 +88,17 @@ model Routine {
   name      String
   createdAt DateTime     @default(now())
   updatedAt DateTime     @updatedAt
+  deletedAt DateTime?
   days      RoutineDay[]
+
+  @@index([deletedAt])
 }
 
 model RoutineDay {
   id           String        @id @default(cuid())
   routineId    String
   routine      Routine       @relation(fields: [routineId], references: [id], onDelete: Cascade)
-  dayOfWeek    Int           // 1=Lunes, 2=Martes, 3=Miércoles, 4=Jueves, 5=Viernes
+  dayOfWeek    Int
   muscleGroups MuscleGroup[]
 
   @@unique([routineId, dayOfWeek])
@@ -67,29 +119,31 @@ model Exercise {
   muscleGroup        MuscleGroup  @relation(fields: [muscleGroupId], references: [id], onDelete: Cascade)
   name               String
   imageUrl           String?
-  imageSource        String?      // "template" (viene de wger) | "user" (subida por el usuario)
-  imageLicenseAuthor String?      // solo si imageSource = "template"
-  imageLicenseUrl    String?      // solo si imageSource = "template"
-  imageSourceUrl     String?      // solo si imageSource = "template", link a wger.de
+  imageSource        String?
+  imageLicenseAuthor String?
+  imageLicenseUrl    String?
+  imageSourceUrl     String?
   targetSets         Int          @default(3)
   targetReps         Int          @default(10)
   targetWeight       Float?
   order              Int          @default(0)
   createdAt          DateTime     @default(now())
+  deletedAt          DateTime?
   logs               WorkoutLog[]
 
   @@index([name])
+  @@index([deletedAt])
 }
 
 model ExerciseImageTemplate {
   id               String   @id @default(cuid())
-  exerciseName     String   // normalizado: lowercase + trim, igual que ya haces para agrupar ejercicios
-  imageUrl         String   // ruta en TU storage, ej: /uploads/exercise-templates/press-banca.png
+  exerciseName     String
+  imageUrl         String
   license          String
   licenseTitle     String?
   licenseAuthor    String?
   licenseAuthorUrl String?
-  sourceUrl        String   // URL del ejercicio en wger.de, para el crédito
+  sourceUrl        String
   createdAt        DateTime @default(now())
 
   @@index([exerciseName])
@@ -117,7 +171,7 @@ model DailyCheckIn {
   id         String   @id @default(cuid())
   userId     String
   user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  date       String   // YYYY-MM-DD, misma convención que toLocalDateKey
+  date       String
   difficulty Int
   notes      String?
   createdAt  DateTime @default(now())

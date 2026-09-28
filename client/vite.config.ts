@@ -9,8 +9,8 @@ export default defineConfig({
     VitePWA({
       registerType: "autoUpdate",
       manifest: {
-        name: "Gym Tracker",
-        short_name: "GymTracker",
+        name: "StackLift Lab",
+        short_name: "StackLift Lab",
         description: "Registra tus entrenamientos y progreso en el gimnasio",
         theme_color: "#1a1a1a",
         background_color: "#1a1a1a",

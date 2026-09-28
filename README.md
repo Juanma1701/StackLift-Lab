@@ -1,4 +1,4 @@
-# Gym Tracker
+# StackLift Lab
 
 Aplicacion full-stack para gestionar entrenamientos.
 
