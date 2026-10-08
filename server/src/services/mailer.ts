@@ -17,6 +17,7 @@ async function sendWithAppsScript({ to, subject, html, text }: MailInput) {
     headers: { "Content-Type": "text/plain;charset=utf-8" },
     body: JSON.stringify({ secret, to, subject, html, text }),
     redirect: "follow",
+    signal: AbortSignal.timeout(20000),
   });
 
   let data: { ok?: boolean; error?: string };
