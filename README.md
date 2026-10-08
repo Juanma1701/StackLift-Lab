@@ -25,5 +25,5 @@ npm run dev
 ```
 
 ## Revisa la app con una cuenta demo
-correo: demo123@gmail.com
+correo: demostacklift123@gmail.com
 contraseña: Demo54321
