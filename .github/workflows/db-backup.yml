@@ -24,7 +24,12 @@ jobs:
       - name: Dump de la base de datos
         run: |
           mkdir -p backups
-          /usr/lib/postgresql/18/bin/pg_dump "${{ secrets.DATABASE_UNPOOLED_URL }}" > backups/backup-$(date +%Y-%m-%d).sql
+          FILE="backups/backup-$(date +%Y-%m-%d).sql"
+          /usr/lib/postgresql/18/bin/pg_dump "${{ secrets.DATABASE_UNPOOLED_URL }}" \
+            --schema=public --no-owner --no-acl > "$FILE"
+          # Verificación: debe tener contenido real y la tabla User
+          test "$(wc -c < "$FILE")" -gt 10000
+          grep -q 'CREATE TABLE public."User"' "$FILE"
 
       - name: Cifrar el backup
         run: |
@@ -43,7 +48,12 @@ jobs:
 
       - name: Borrar backups de más de 14 días
         run: |
-          find backups/ -name "*.sql.gpg" -mtime +14 -delete
+          LIMITE=$(date -d '14 days ago' +%Y-%m-%d)
+          for f in backups/backup-*.sql.gpg; do
+            [ -e "$f" ] || continue
+            dia=$(basename "$f" .sql.gpg | sed 's/^backup-//')
+            if [[ "$dia" < "$LIMITE" ]]; then rm "$f"; fi
+          done
           git add backups/
           git commit -m "Limpieza de backups viejos" || echo "Nada para limpiar"
           git push
