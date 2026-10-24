@@ -3,8 +3,7 @@ import { prisma } from "../config/prisma";
 import { AuthRequest } from "../middleware/auth";
 import { assertMuscleGroupOwner, assertExerciseOwner, assertTrashedExerciseOwner } from "../middleware/ownership";
 import { TRASH_RETENTION_MS } from "../config/trash";
-import fs from "fs";
-import path from "path";
+import { saveUpload, deleteUpload } from "../utils/storage";
 
 export async function createExercise(req: AuthRequest, res: Response) {
   await assertMuscleGroupOwner(req.params.muscleGroupId, req.userId!);
@@ -152,17 +151,8 @@ export async function uploadExerciseImage(req: AuthRequest, res: Response) {
   if (!req.file) return res.status(400).json({ message: "No se recibió ninguna imagen" });
 
   const existing = await prisma.exercise.findUnique({ where: { id: req.params.id } });
-  if (existing?.imageUrl && existing.imageSource === "user") {
-    const oldPath = path.join(__dirname, "../../uploads", path.basename(existing.imageUrl));
-    fs.unlink(oldPath, () => {});
-  }
 
-  const uploadsDir = path.join(__dirname, "../../uploads");
-  if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
-
-  const ext = req.file.mimetype === "image/png" ? ".png" : req.file.mimetype === "image/webp" ? ".webp" : ".jpg";
-  const filename = `${Date.now()}-${Math.round(Math.random() * 1e9)}${ext}`;
-  fs.writeFileSync(path.join(uploadsDir, filename), req.file.buffer);
+  const filename = await saveUpload(req.file);
 
   const exercise = await prisma.exercise.update({
     where: { id: req.params.id },
@@ -175,21 +165,24 @@ export async function uploadExerciseImage(req: AuthRequest, res: Response) {
     },
   });
 
+  if (existing?.imageUrl && existing.imageSource === "user") {
+    await deleteUpload(existing.imageUrl);
+  }
+
   res.json(exercise);
 }
 
 export async function deleteExerciseImage(req: AuthRequest, res: Response) {
   const existing = await assertExerciseOwner(req.params.id, req.userId!);
 
-  if (existing.imageUrl && existing.imageSource === "user") {
-    const oldPath = path.join(__dirname, "../../uploads", path.basename(existing.imageUrl));
-    fs.unlink(oldPath, () => {});
-  }
-
   const exercise = await prisma.exercise.update({
     where: { id: req.params.id },
     data: { imageUrl: null, imageSource: null, imageLicenseAuthor: null, imageLicenseUrl: null, imageSourceUrl: null },
   });
+
+  if (existing.imageUrl && existing.imageSource === "user") {
+    await deleteUpload(existing.imageUrl);
+  }
 
   res.json(exercise);
 }

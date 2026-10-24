@@ -7,9 +7,7 @@ import { AuthRequest } from "../middleware/auth";
 import { sendVerificationEmail } from "../services/email.service";
 import { generateTwoFactorSecret, getTwoFactorQrCodeDataUrl, verifyTwoFactorCode } from "../utils/twoFactor";
 import { encrypt, decrypt } from "../utils/crypto";
-import fs from "fs";
-import path from "path";
-
+import { saveUpload, deleteUpload } from "../utils/storage";
 
 const COOKIE_OPTIONS = {
   httpOnly: true,
@@ -393,22 +391,15 @@ export async function uploadAvatar(req: AuthRequest, res: Response) {
   if (!req.file) return res.status(400).json({ message: "No se recibió ninguna imagen" });
 
   const existing = await prisma.user.findUnique({ where: { id: req.userId } });
-  if (existing?.avatarUrl) {
-    const oldPath = path.join(__dirname, "../../uploads", path.basename(existing.avatarUrl));
-    fs.unlink(oldPath, () => {});
-  }
 
-  const uploadsDir = path.join(__dirname, "../../uploads");
-  if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
-
-  const ext = req.file.mimetype === "image/png" ? ".png" : req.file.mimetype === "image/webp" ? ".webp" : ".jpg";
-  const filename = `${Date.now()}-${Math.round(Math.random() * 1e9)}${ext}`;
-  fs.writeFileSync(path.join(uploadsDir, filename), req.file.buffer);
+  const filename = await saveUpload(req.file);
 
   const user = await prisma.user.update({
     where: { id: req.userId },
     data: { avatarUrl: `/uploads/${filename}` },
   });
+
+  if (existing?.avatarUrl) await deleteUpload(existing.avatarUrl);
 
   res.json({ id: user.id, name: user.name, email: user.email, avatarUrl: user.avatarUrl });
 }
