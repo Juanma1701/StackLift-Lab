@@ -1,4 +1,5 @@
 # StackLift Lab
+Desarrollada por Juan Manuel Castaño Quiroz
 
 Aplicacion full-stack para gestionar entrenamientos.
 
